@@ -23,6 +23,7 @@ class ConflictResult(str, Enum):
     CONFLICT = "CONFLICT"
     RESOLVED_BY_SUPERSEDE = "RESOLVED_BY_SUPERSEDE"
     NEEDS_CLASS_CLARIFICATION = "NEEDS_CLASS_CLARIFICATION"
+    NEEDS_COHORT_CLARIFICATION = "NEEDS_COHORT_CLARIFICATION"
 
 
 class ResolvedSources:
@@ -82,7 +83,15 @@ def resolve_conflicts(sources: list[OfficialSource]) -> ResolvedSources:
             result=result_type, winner=remaining[0], all_sources=sources
         )
 
-    # Step 3: Check if remaining sources differ by class_scope
+    # Step 3: Never merge records from different cohorts.
+    cohorts = {s.cohort for s in remaining if s.cohort}
+    if len(cohorts) > 1:
+        return ResolvedSources(
+            result=ConflictResult.NEEDS_COHORT_CLARIFICATION,
+            all_sources=remaining,
+        )
+
+    # Step 4: Check if remaining sources differ by class_scope
     class_scopes = {s.class_scope for s in remaining if s.class_scope}
     if len(class_scopes) > 1:
         return ResolvedSources(

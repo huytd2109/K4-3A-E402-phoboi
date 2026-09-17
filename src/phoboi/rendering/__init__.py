@@ -10,7 +10,7 @@ from datetime import timezone, timedelta
 from typing import Optional
 
 from phoboi.models import (
-    LogisticsType,
+    Intent,
     OfficialSource,
     PolicyDecision,
     PolicyOutcome,
@@ -31,11 +31,13 @@ def render_response(
     For multi-intent messages, each decision is rendered as a separate section.
     """
     parts: list[str] = []
+    seen_parts: set[str] = set()
 
     for decision in decisions:
         rendered = _render_single(decision, support_route=support_route)
-        if rendered:
+        if rendered and rendered not in seen_parts:
             parts.append(rendered)
+            seen_parts.add(rendered)
 
     if not parts:
         parts.append("Mình không hiểu câu hỏi. Bạn có thể diễn đạt lại được không?")
@@ -116,20 +118,20 @@ def _render_verified(decision: PolicyDecision) -> str:
     lines: list[str] = []
 
     # Main answer based on logistics type
-    if source.logistics_type == LogisticsType.DEADLINE and source.deadline:
+    if decision.intent == Intent.LOGISTICS_DEADLINE and source.deadline:
         deadline_vn = source.deadline.astimezone(UTC_PLUS_7)
         formatted = deadline_vn.strftime("%H:%M, %d/%m/%Y")
         task_display = _task_display_name(source.task_id)
         lines.append(f"Hạn nộp {task_display}: **{formatted} (UTC+7)**.")
 
-    elif source.logistics_type == LogisticsType.LINK:
+    elif decision.intent == Intent.LOGISTICS_LINK:
         task_display = _task_display_name(source.task_id)
         if source.submission_url:
             lines.append(f"Link cho {task_display}: {source.submission_url}")
         else:
             lines.append(f"Thông tin về {task_display} — xem chi tiết tại nguồn bên dưới.")
 
-    elif source.logistics_type == LogisticsType.SUBMISSION:
+    elif decision.intent == Intent.LOGISTICS_SUBMISSION:
         task_display = _task_display_name(source.task_id)
         lines.append(f"Thông tin cách nộp {task_display} — xem chi tiết tại nguồn bên dưới.")
 
@@ -146,7 +148,7 @@ def _render_verified(decision: PolicyDecision) -> str:
     lines.append(f"Nguồn chính thức: [Thông báo]({source.source_url}).")
 
     # Submission URL if available and not already shown
-    if source.submission_url and source.logistics_type != LogisticsType.LINK:
+    if source.submission_url and decision.intent != Intent.LOGISTICS_LINK:
         lines.append(f"Nộp bài: {source.submission_url}")
 
     return "\n".join(lines)

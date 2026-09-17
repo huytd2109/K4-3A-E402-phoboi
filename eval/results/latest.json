@@ -3,7 +3,11 @@
     "total": 48,
     "passed": 48,
     "failed": 0,
-    "pass_rate": 1.0
+    "pass_rate": 1.0,
+    "hard_tests": {
+      "total": 4,
+      "passed": 4
+    }
   },
   "quality_gates": {
     "incorrect_deadline": 0,

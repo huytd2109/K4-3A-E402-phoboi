@@ -10,9 +10,10 @@ from phoboi.sources import SourceRepository
 
 
 @pytest.fixture
-def config():
+def config(monkeypatch):
     """A config with APP_ENV=test."""
-    os.environ["APP_ENV"] = "test"
+    monkeypatch.setenv("APP_ENV", "test")
+    monkeypatch.setenv("LLM_PROVIDER", "rule_based")
     return Config()
 
 
@@ -27,6 +28,7 @@ def sample_official_sources():
             task_id="lab-01",
             logistics_type=LogisticsType.DEADLINE,
             deadline=datetime(2026, 9, 10, 23, 59, tzinfo=timezone.utc),
+            submission_url="https://vlearn.example.com/lab-01",
             is_fixture=True,
             cohort="K4",
             class_scope="",

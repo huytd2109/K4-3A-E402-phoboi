@@ -124,23 +124,35 @@ class PolicyEngine:
                 reason=f"Missing required field(s): {', '.join(missing)}",
             )
 
+        requested_type = {
+            Intent.LOGISTICS_DEADLINE: LogisticsType.DEADLINE,
+            Intent.LOGISTICS_LINK: LogisticsType.LINK,
+            Intent.LOGISTICS_SUBMISSION: LogisticsType.SUBMISSION,
+        }[intent]
+
         # Query the source repository
         query_result = self._source_repo.query(
             task_id=extraction.task_normalized,
             cohort=extraction.cohort,
             class_scope=extraction.class_scope,
-            logistics_type=extraction.logistics_type,
+            logistics_type=requested_type,
         )
 
         # Fallback: if no results with specific logistics_type, try without type filter
         # This handles cases like "deadline workshop 1" where source type is "schedule"
-        if not query_result.sources and extraction.logistics_type is not None:
+        if not query_result.sources:
             query_result = self._source_repo.query(
                 task_id=extraction.task_normalized,
                 cohort=extraction.cohort,
                 class_scope=extraction.class_scope,
                 logistics_type=None,
             )
+
+        # Broad fallback records still need the fact required by this intent.
+        if requested_type == LogisticsType.DEADLINE:
+            query_result.sources = [s for s in query_result.sources if s.deadline]
+        elif requested_type in (LogisticsType.LINK, LogisticsType.SUBMISSION):
+            query_result.sources = [s for s in query_result.sources if s.submission_url]
 
         # No sources found
         if not query_result.sources:
@@ -177,6 +189,15 @@ class PolicyEngine:
                 missing_fields=["class_scope (ví dụ: L2-3 hoặc L3-4)"],
                 sources_considered=resolved.all_sources,
                 reason="Sources exist for different class scopes; need clarification.",
+            )
+
+        if resolved.result == ConflictResult.NEEDS_COHORT_CLARIFICATION:
+            return PolicyDecision(
+                outcome=PolicyOutcome.CLARIFY,
+                intent=intent,
+                missing_fields=["cohort (ví dụ: K4)"],
+                sources_considered=resolved.all_sources,
+                reason="Sources exist for different cohorts; need clarification.",
             )
 
         # Single source or resolved by supersede → ANSWER_VERIFIED

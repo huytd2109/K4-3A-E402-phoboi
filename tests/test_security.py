@@ -42,6 +42,10 @@ def test_pii_detection():
         res = sanitize_input(msg)
         assert res.contains_pii is True
 
+    email_result = sanitize_input("liên hệ student@example.com")
+    assert email_result.contains_pii is True
+    assert "student@example.com" in email_result.cleaned
+
 
 def test_length_truncation():
     msg = "A" * 3000

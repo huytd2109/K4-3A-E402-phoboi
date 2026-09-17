@@ -10,5 +10,7 @@
 - **Discord bot token**: Cần lưu trong `.env` (không bao giờ commit lên git).
 
 ## Khuyến nghị xử lý dữ liệu
-- File `survey.csv` đang bị track bởi git (được thêm vào trước khi có rule `*.csv` trong gitignore). **Khuyến nghị**: Di chuyển file vào thư mục `data/` (đã được gitignore) hoặc giữ nguyên nếu cần thiết, nhưng không tự động xóa.
+- Repo hiện không có `survey.csv`. Nếu nhóm muốn dùng các số liệu khảo sát trong spec,
+  cần bổ sung artifact đã ẩn danh cùng phương pháp đếm; nếu không, giữ các tuyên bố
+  khảo sát ngoài phần evidence đã xác minh.
 - Thư mục `data/discord-pack/` đang chứa dữ liệu thực tế đã được commit. Theo chính sách dữ liệu, thông tin này không nên để public. **Khuyến nghị**: Xóa khỏi lịch sử git công khai.

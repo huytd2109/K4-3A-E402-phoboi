@@ -92,10 +92,9 @@ _TASK_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\b(?:đăng\s*ký\s*nhóm)\b", re.IGNORECASE), "team-formation"),
 ]
 
-_COHORT_PATTERNS: list[tuple[re.Pattern[str], str]] = [
-    (re.compile(r"\bK4\b", re.IGNORECASE), "K4"),
-    (re.compile(r"\bkhoá\s*4\b", re.IGNORECASE), "K4"),
-    (re.compile(r"\bcohort\s*4\b", re.IGNORECASE), "K4"),
+_COHORT_PATTERNS: list[re.Pattern[str]] = [
+    re.compile(r"\bK\s*(\d+)\b", re.IGNORECASE),
+    re.compile(r"\b(?:khoá|khóa|cohort)\s*(\d+)\b", re.IGNORECASE),
 ]
 
 _CLASS_SCOPE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
@@ -196,9 +195,10 @@ class RuleBasedRouter(IntentRouterProvider):
                 break
 
         # Extract cohort
-        for pattern, cohort_val in _COHORT_PATTERNS:
-            if pattern.search(text):
-                cohort = cohort_val
+        for pattern in _COHORT_PATTERNS:
+            match = pattern.search(text)
+            if match:
+                cohort = f"K{int(match.group(1))}"
                 break
 
         # Extract class scope
@@ -237,8 +237,24 @@ class RuleBasedRouter(IntentRouterProvider):
 # ── Factory ──────────────────────────────────────────────────────
 
 
-def create_router(provider: str = "rule_based") -> IntentRouterProvider:
-    """Create an intent router. Only rule_based is available in MVP."""
-    if provider == "rule_based":
+def create_router(
+    provider: str = "rule_based",
+    *,
+    api_key: str = "",
+    model: str = "gemini-2.5-flash",
+    timeout_seconds: float = 12.0,
+) -> IntentRouterProvider:
+    """Create the configured router without changing the pipeline contract."""
+    normalized = provider.strip().lower()
+    if normalized in {"rule_based", "rule", "offline", "mock"}:
         return RuleBasedRouter()
+    if normalized == "gemini":
+        from phoboi.intent.gemini import GeminiIntentRouter, HybridIntentRouter
+
+        primary = GeminiIntentRouter(
+            api_key=api_key,
+            model=model,
+            timeout_seconds=timeout_seconds,
+        )
+        return HybridIntentRouter(primary=primary, fallback=RuleBasedRouter())
     raise ValueError(f"Unknown router provider: {provider}")

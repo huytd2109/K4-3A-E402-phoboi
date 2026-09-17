@@ -45,6 +45,9 @@ class SourceRepository:
                     f"Set APP_ENV=demo or APP_ENV=test to use fixtures."
                 )
 
+            if self._config.is_production:
+                self._validate_production_source(source)
+
             loaded.append(source)
 
         self._sources = loaded
@@ -57,7 +60,24 @@ class SourceRepository:
                     raise ValueError(
                         f"Fixture source '{s.source_id}' not allowed in production."
                     )
+                self._validate_production_source(s)
         self._sources = list(sources)
+
+    def _validate_production_source(self, source: OfficialSource) -> None:
+        """Reject production records that are outside configured trust lists."""
+        if not self._config.authorized_channel_ids or not self._config.authorized_role_ids:
+            raise ValueError(
+                "Production sources require non-empty AUTHORIZED_CHANNEL_IDS and "
+                "AUTHORIZED_ROLE_IDS whitelists."
+            )
+        if source.channel_id not in self._config.authorized_channel_ids:
+            raise ValueError(
+                f"Source '{source.source_id}' comes from an unauthorized channel."
+            )
+        if source.published_by_role not in self._config.authorized_role_ids:
+            raise ValueError(
+                f"Source '{source.source_id}' comes from an unauthorized publisher role."
+            )
 
     def query(
         self,

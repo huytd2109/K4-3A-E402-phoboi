@@ -50,3 +50,25 @@ def test_policy_decision_answer_verified_requires_source_url():
 def test_intent_and_policy_outcome_enum_values():
     assert Intent.GREETING.value == "GREETING"
     assert PolicyOutcome.ANSWER_VERIFIED.value == "ANSWER_VERIFIED"
+
+
+def test_official_source_rejects_invalid_url_and_naive_deadline():
+    with pytest.raises(ValidationError):
+        OfficialSource(
+            source_id="bad-url",
+            source_url="not-a-url",
+            published_at=datetime.now(timezone.utc),
+            task_id="lab-01",
+            logistics_type=LogisticsType.DEADLINE,
+            deadline=datetime.now(timezone.utc),
+        )
+
+    with pytest.raises(ValidationError):
+        OfficialSource(
+            source_id="naive-time",
+            source_url="https://discord.com/message",
+            published_at=datetime.now(timezone.utc),
+            task_id="lab-01",
+            logistics_type=LogisticsType.DEADLINE,
+            deadline=datetime.now(),
+        )

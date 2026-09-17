@@ -10,6 +10,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from phoboi.config import Config
+from phoboi.models import PipelineResponse
 from phoboi.pipeline import Pipeline
 from phoboi.security import escape_mentions
 
@@ -38,20 +39,27 @@ class PhobotClient:
 
     def process_message(self, content: str, message_url: str = "") -> str:
         """Process a message and return the response text."""
-        result = self.pipeline.process(content, message_url=message_url)
-        return result.rendered_text
+        return self.process(content, message_url=message_url).rendered_text
 
-    def get_handoff_text(self, content: str, message_url: str = "") -> str | None:
-        """Get handoff notification text if needed."""
-        result = self.pipeline.process(content, message_url=message_url)
-        if result.audit and result.audit.handoff_sent:
+    def process(self, content: str, message_url: str = "") -> PipelineResponse:
+        """Process once so reply and handoff share the same cooldown decision."""
+        return self.pipeline.process(content, message_url=message_url)
+
+    def get_handoff_text(self, result: PipelineResponse) -> str | None:
+        """Render a safe TA notification from an existing pipeline result."""
+        if result.handoffs:
+            payload = result.handoffs[0]
             ta_role = self.config.discord_ta_role_id
             role_mention = f"<@&{ta_role}>" if ta_role else "TA"
+            source_ids = ", ".join(payload.related_source_ids) or "none"
+            message_ids = ", ".join(payload.related_discord_message_ids) or "none"
             return (
                 f"📨 **Handoff** — {role_mention}\n"
-                f"Câu hỏi: {content[:200]}\n"
-                f"Lý do: {result.decisions[0].outcome.value}\n"
-                f"Link: {message_url}"
+                f"Câu hỏi: {escape_mentions(payload.original_message)}\n"
+                f"Lý do: {payload.reason_code.value}\n"
+                f"Nguồn liên quan: {source_ids}\n"
+                f"Discord pack liên quan (không chính thức): {message_ids}\n"
+                f"Link: {payload.original_message_url}"
             )
         return None
 
@@ -102,20 +110,25 @@ def create_discord_bot(config: Config) -> "discord.Client":
         # Process and reply
         try:
             message_url = message.jump_url if hasattr(message, "jump_url") else ""
-            response = phobot.process_message(message.content, message_url=message_url)
-            response = escape_mentions(response)
+            result = phobot.process(message.content, message_url=message_url)
+            response = escape_mentions(result.rendered_text)
 
             # Reply in thread or same channel
             await message.reply(response, mention_author=False)
 
             # Check for handoff
-            handoff_text = phobot.get_handoff_text(message.content, message_url=message_url)
+            handoff_text = phobot.get_handoff_text(result)
             if handoff_text and config.discord_handoff_channel_id:
                 handoff_channel = client.get_channel(
                     int(config.discord_handoff_channel_id)
                 )
                 if handoff_channel and hasattr(handoff_channel, "send"):
-                    await handoff_channel.send(escape_mentions(handoff_text))
+                    await handoff_channel.send(
+                        handoff_text,
+                        allowed_mentions=discord.AllowedMentions(
+                            everyone=False, users=False, roles=True
+                        ),
+                    )
 
         except Exception:
             logger.exception("Error processing message")

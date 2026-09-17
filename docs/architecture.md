@@ -1,9 +1,13 @@
 # Architecture Diagram
 
+`discord-pack` là context index không có thẩm quyền: hệ thống chỉ dùng các
+`msg_id` truy hồi được cho audit/handoff. Nó không đi vào `SourceRepository`
+và không thể tạo ra `ANSWER_VERIFIED`; quyền này chỉ thuộc `OfficialSource`.
+
 ```mermaid
 flowchart TD
-    subgraph Discord
-        User[User Input]
+    subgraph Input Adapters
+        User[Discord / CLI / Local Web Demo]
     end
 
     subgraph Bot System
@@ -47,11 +51,14 @@ flowchart TD
 
 ## Trust Boundaries
 - **Discord Input**: Untrusted.
+- **Web/CLI Input**: Untrusted; the local web adapter limits request size and
+  returns generic errors instead of exception details.
 - **Official Sources**: Trusted.
 - **LLM**: Semi-trusted (future use for classification only, never for deadline content generation).
 
 ## Failure Behavior
 - **Source file missing**: Error.
 - **Schema invalid**: Reject.
+- **Production whitelist missing/mismatch**: Reject the source store at load time.
 - **No source found**: Handoff to human TA.
 - **Conflict in sources**: Handoff to human TA.

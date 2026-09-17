@@ -68,3 +68,24 @@ def test_router_entity_extraction(router):
     assert res.extraction.task_normalized == "lab-02"
     assert res.extraction.cohort == "K4"
     assert res.extraction.class_scope == "L3-4"
+
+
+def test_router_extracts_non_k4_cohort(router):
+    res = router.classify("deadline lab 1 K5")
+    assert res.extraction.cohort == "K5"
+
+
+def test_gemini_router_falls_back_transparently_without_key():
+    router = create_router(
+        "gemini",
+        api_key="",
+        model="gemini-test-model",
+        timeout_seconds=1,
+    )
+    res = router.classify("deadline lab 2")
+
+    assert Intent.LOGISTICS_DEADLINE in res.intents
+    assert res.provider == "rule_based"
+    assert res.used_fallback is True
+    assert res.fallback_reason == "missing_api_key"
+    assert res.model == "gemini-test-model"

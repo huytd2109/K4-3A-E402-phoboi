@@ -78,3 +78,8 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
+
+def web_main():
+    from phoboi.adapters.web_demo import run_web_demo
+    run_web_demo()
+

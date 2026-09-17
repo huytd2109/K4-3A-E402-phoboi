@@ -10,7 +10,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
 
 
 # ── Intent taxonomy ───────────────────────────────────────────────
@@ -133,6 +133,24 @@ class OfficialSource(BaseModel):
             return v
         return datetime.fromisoformat(v)
 
+    @field_validator("source_url", "submission_url")
+    @classmethod
+    def validate_urls(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        HttpUrl(value)
+        return value
+
+    @model_validator(mode="after")
+    def validate_source_content(self) -> "OfficialSource":
+        if self.published_at.tzinfo is None:
+            raise ValueError("published_at must include timezone information")
+        if self.deadline is not None and self.deadline.tzinfo is None:
+            raise ValueError("deadline must include timezone information")
+        if self.logistics_type == LogisticsType.DEADLINE and self.deadline is None:
+            raise ValueError("deadline sources must include a deadline")
+        return self
+
 
 # ── Pipeline data structures ─────────────────────────────────────
 
@@ -162,6 +180,11 @@ class RouterResult(BaseModel):
     intents: list[Intent] = Field(..., min_length=1)
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
     extraction: ExtractionResult = Field(default_factory=ExtractionResult)
+    provider: str = Field(default="rule_based")
+    model: Optional[str] = Field(default=None)
+    used_fallback: bool = Field(default=False)
+    latency_ms: Optional[int] = Field(default=None, ge=0)
+    fallback_reason: Optional[str] = Field(default=None)
 
 
 class SourceQueryResult(BaseModel):
@@ -188,6 +211,7 @@ class PipelineResponse(BaseModel):
     decisions: list[PolicyDecision] = Field(..., min_length=1)
     rendered_text: str = Field(..., min_length=1)
     is_fixture_data: bool = Field(default=False)
+    handoffs: list[HandoffPayload] = Field(default_factory=list)
     audit: AuditRecord | None = Field(default=None)
 
     @model_validator(mode="before")
@@ -221,6 +245,7 @@ class HandoffPayload(BaseModel):
     original_message_url: str = Field(default="", description="Link to the original message")
     extracted_entities: ExtractionResult = Field(default_factory=ExtractionResult)
     related_source_ids: list[str] = Field(default_factory=list)
+    related_discord_message_ids: list[str] = Field(default_factory=list)
     timestamp: datetime = Field(default_factory=datetime.now)
     dedup_key: str = Field(default="", description="Key for deduplication/cooldown")
 
@@ -232,11 +257,19 @@ class AuditRecord(BaseModel):
     raw_input_hash: str = Field(default="", description="SHA256 hash of raw input (not the content)")
     intents: list[Intent] = Field(default_factory=list)
     extraction: ExtractionResult = Field(default_factory=ExtractionResult)
+    router_provider: str = "rule_based"
+    router_model: Optional[str] = None
+    router_used_fallback: bool = False
+    router_latency_ms: Optional[int] = None
+    router_fallback_reason: Optional[str] = None
     decisions: list[PolicyDecision] = Field(default_factory=list)
     response_outcome: PolicyOutcome | None = None
     source_ids_used: list[str] = Field(default_factory=list)
+    discord_pack_message_ids: list[str] = Field(default_factory=list)
+    discord_pack_total: int = Field(default=0, ge=0)
     handoff_sent: bool = False
     is_fixture_data: bool = False
+    security_flags: list[str] = Field(default_factory=list)
 
 
 # Forward reference resolution

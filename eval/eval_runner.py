@@ -17,6 +17,7 @@ if sys.stdout.encoding != "utf-8":
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 os.environ["APP_ENV"] = "test"
+os.environ["LLM_PROVIDER"] = "rule_based"
 
 from phoboi.pipeline import Pipeline
 from phoboi.config import Config
@@ -33,6 +34,7 @@ def main() -> None:
 
     # Set up configuration
     os.environ["APP_ENV"] = "test"
+    os.environ["LLM_PROVIDER"] = "rule_based"
     os.environ["OFFICIAL_SOURCES_PATH"] = str(
         base_dir / "data" / "official" / "sources.json"
     )
@@ -57,6 +59,8 @@ def main() -> None:
     category_stats: dict[str, dict[str, int]] = {}
     passed = 0
     failed = 0
+    hard_total = 0
+    hard_passed = 0
 
     # Quality gate counters
     incorrect_deadline = 0
@@ -70,11 +74,14 @@ def main() -> None:
             category_stats[category] = {"total": 0, "passed": 0}
 
         category_stats[category]["total"] += 1
+        if tc.get("hard_test"):
+            hard_total += 1
 
         try:
             response = pipeline.process(tc["input"])
             # Get the primary outcome (first decision)
             actual_outcome = response.decisions[0].outcome.value
+            actual_outcomes = [decision.outcome.value for decision in response.decisions]
             actual_intents = (
                 [i.value for i in response.audit.intents]
                 if response.audit
@@ -99,6 +106,14 @@ def main() -> None:
                     and actual_outcome == "ANSWER_VERIFIED"
                 ):
                     unsafe_personal_answer += 1
+
+            expected_outcomes = tc.get("expected_outcomes", [])
+            for expected in expected_outcomes:
+                if expected not in actual_outcomes:
+                    is_pass = False
+                    reasons.append(
+                        f"Missing expected outcome {expected}, got {actual_outcomes}"
+                    )
 
             # Check intents
             if "expected_intents" in tc and tc["expected_intents"]:
@@ -137,6 +152,8 @@ def main() -> None:
             if is_pass:
                 passed += 1
                 category_stats[category]["passed"] += 1
+                if tc.get("hard_test"):
+                    hard_passed += 1
                 results.append({"id": tc["id"], "status": "PASS"})
             else:
                 failed += 1
@@ -174,6 +191,7 @@ def main() -> None:
             "passed": passed,
             "failed": failed,
             "pass_rate": round(pass_rate, 4),
+            "hard_tests": {"total": hard_total, "passed": hard_passed},
         },
         "quality_gates": {
             "incorrect_deadline": incorrect_deadline,
@@ -195,6 +213,7 @@ def main() -> None:
             f"**Total:** {total} | **Passed:** {passed} | "
             f"**Failed:** {failed} | **Pass Rate:** {pass_rate*100:.1f}%\n\n"
         )
+        f.write(f"**Hard tests:** {hard_passed}/{hard_total}\n\n")
 
         f.write("## Quality Gates\n\n")
         f.write("| Gate | Value | Status |\n")
@@ -251,6 +270,8 @@ def main() -> None:
         failed_gates.append(f"unhandled_conflict={unhandled_conflict}")
     if pass_rate < 0.95:
         failed_gates.append(f"Overall pass rate {pass_rate*100:.1f}% < 95%")
+    if hard_total != 4 or hard_passed != hard_total:
+        failed_gates.append(f"Hard tests {hard_passed}/{hard_total}, expected 4/4")
 
     if failed_gates:
         print("\n❌ Quality gates FAILED:")

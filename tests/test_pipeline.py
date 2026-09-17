@@ -69,3 +69,27 @@ def test_no_fabricated_deadline_possible(pipeline, monkeypatch):
     from pydantic import ValidationError
     with pytest.raises(ValidationError):
         mock_pipeline.process("hạn nộp lab 1")
+
+
+def test_pipeline_does_not_answer_from_another_cohort(pipeline):
+    res = pipeline.process("deadline lab 1 K5")
+    assert res.decisions[0].outcome == PolicyOutcome.HANDOFF_NO_SOURCE
+
+
+def test_pipeline_handles_deadline_and_link_independently(pipeline):
+    res = pipeline.process("deadline và link nộp lab 1")
+    assert [decision.outcome for decision in res.decisions] == [
+        PolicyOutcome.ANSWER_VERIFIED,
+        PolicyOutcome.ANSWER_VERIFIED,
+    ]
+    assert res.rendered_text.count("Hạn nộp Lab 1") == 1
+    assert "Link cho Lab 1" in res.rendered_text
+
+
+def test_handoff_payload_redacts_pii(pipeline):
+    res = pipeline.process("giúp câu lạ 0987654321?")
+    assert res.decisions[0].outcome == PolicyOutcome.HANDOFF_LOW_CONFIDENCE
+    assert res.handoffs
+    assert "0987654321" not in res.handoffs[0].original_message
+    assert "[IDENTIFIER]" in res.handoffs[0].original_message
+    assert "pii_detected" in res.audit.security_flags

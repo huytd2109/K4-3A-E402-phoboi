@@ -11,7 +11,7 @@
 ### A. Nghiên cứu dữ liệu & Khảo sát thực tế (Phase A)
 - [x] **Audit toàn bộ kho dữ liệu**:
   - `data/discord-pack/k4_messages.csv`: Phân tích 1.092 tin nhắn (779 tin người dùng, 313 tin bot); 307 tin tag trực tiếp `@BOT`.
-  - `survey.csv`: Phân tích 22 phản hồi khảo sát học viên về khó khăn tìm kiếm logistics/deadline.
+  - Repo không có `survey.csv`; các số liệu khảo sát cũ không được xem là evidence có thể kiểm lại.
   - `k4_daily_reports.md`: Chỉ ra các lỗi thật của bot hiện tại (lỗi chèn chuỗi `"nguồn tham chiếu"`, tóm tắt cắt cụt).
 - [x] **Tài liệu hóa bằng chứng (`docs/evidence.md`)**:
   - Tổng hợp phương pháp đếm, bảng số liệu aggregate, 5 ví dụ trích dẫn dẫn nguồn bằng `msg_id` (tuân thủ quy định tối đa 2 câu/trích dẫn, bảo mật PII).
@@ -67,7 +67,7 @@
 - [x] **Dữ liệu mẫu (`data/official/sources.json`)**:
   - Tạo 7 nguồn mẫu fixture (`is_fixture: true`) có đầy đủ Lab 1, Lab 2 (cố tình tạo conflict), Workshop 1, Ghép đội, Lab 3 (phân tách theo lớp).
 - [x] **Bộ Unit & Integration Tests (`tests/`)**:
-  - 40/40 tests PASSED (0.13s) qua `pytest`:
+  - 48/48 tests PASSED qua `pytest`:
     - Schema validation, Invariant checks.
     - Router & Entity extractor.
     - Security (Injection, Mention escaping, PII).
@@ -92,9 +92,9 @@ Dưới đây là các hạng mục tồn đọng cần hoàn tất để đạt
 
 | STT | Hạng mục | Tình trạng hiện tại | Việc cần làm tiếp |
 |:---:|---|---|---|
-| 1 | **`spec.md`** | Hiện tại chỉ là file template khung rỗng của ban tổ chức. | Điền đầy đủ các phần từ **§1 đến §9** dựa trên số liệu thực từ `docs/evidence.md`, thiết kế hệ thống và kết quả eval. |
-| 2 | **`README.md`** | Hiện tại mới có 2 dòng tiêu đề repo (`# K4-3A-E402-phoboi`). | Viết hướng dẫn hoàn chỉnh: Giới thiệu, Cài đặt, Chạy Demo CLI, Chạy bot Discord, Chạy Test & Eval, Ghi chú bảo mật & kiến trúc. |
-| 3 | **`TEAMMATES.md`** | Đã có danh sách 4 thành viên nhưng cột `Vai trò` và `Phần việc chính` đang để trống. | Cập nhật phân công vai trò đề xuất (Product/Spec, AI/Prompt, Backend/Code, QA/Eval). |
+| 1 | **`spec.md`** | Đã điền §1–§9 và bỏ số liệu survey không có artifact. | Bổ sung evidence khảo sát chỉ khi có dữ liệu ẩn danh kiểm lại được. |
+| 2 | **`README.md`** | Đã có setup, CLI, web demo, Discord, test/eval và security notes. | Duy trì lệnh và số test theo bản chạy mới nhất. |
+| 3 | **`TEAMMATES.md`** | Đã có phân công đề xuất và ghi rõ chưa được nhóm xác nhận. | Nhóm xác nhận hoặc điều chỉnh phân công. |
 | 4 | **Git Working Tree Cleanup** | Đang có 2 file modified chưa commit (`.gitignore`, `track-b-discord-assistant.md`) và nhiều file untracked mới tạo. | Review diff, staging và commit các module code, tests, docs lên git theo đúng chuẩn quy định của hackathon. |
 | 5 | **Triển khai Discord Production thật (Blocker bên ngoài)** | Đang chạy offline giả lập với Demo Fixtures. | Chờ BTC/Người dùng cung cấp Token bot, Guild ID, Channel ID, Role TA (đã liệt kê trong `BLOCKERS.md`) khi cần đưa lên server thật. |
 
@@ -105,13 +105,16 @@ Dưới đây là các hạng mục tồn đọng cần hoàn tất để đạt
 Hệ thống hiện tại đã sẵn sàng để kiểm tra độc lập tại local:
 
 ```bash
-# 1. Chạy toàn bộ unit tests (40 tests)
+# 1. Chạy toàn bộ unit tests (48 tests)
 python -m pytest tests/ -v
 
 # 2. Chạy bộ đánh giá Golden Set (48 cases)
 python eval/eval_runner.py
 
-# 3. Chạy giao diện demo tương tác trực tiếp
+# 3. Chạy CLI demo
 python -m phoboi.adapters.cli
+
+# 4. Chạy web demo theo Figma Make
+python -m phoboi.adapters.web_demo --port 8080
 ```
 

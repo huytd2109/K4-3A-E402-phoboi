@@ -2,6 +2,8 @@
 
 ## Whitelist
 - Sources must be configured via environment variables. Only whitelisted channels and roles can act as official sources.
+- Production startup fails closed when either whitelist is empty or a record does
+  not match both lists.
 
 ## Precedence Rules
 - Official announcements supersede regular TA messages.

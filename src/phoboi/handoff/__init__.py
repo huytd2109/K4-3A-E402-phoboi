@@ -15,6 +15,7 @@ from phoboi.models import (
     PolicyDecision,
     PolicyOutcome,
 )
+from phoboi.security import redact_pii
 
 
 class HandoffHandler:
@@ -40,6 +41,7 @@ class HandoffHandler:
         original_message: str = "",
         original_message_url: str = "",
         extraction: ExtractionResult | None = None,
+        related_discord_message_ids: list[str] | None = None,
     ) -> HandoffPayload:
         """Create a handoff payload from a policy decision."""
         # Build dedup key from extraction + outcome
@@ -52,12 +54,13 @@ class HandoffHandler:
 
         return HandoffPayload(
             reason_code=decision.outcome,
-            original_message=_truncate(original_message, 200),
+            original_message=_truncate(redact_pii(original_message), 200),
             original_message_url=original_message_url,
             extracted_entities=extraction or ExtractionResult(),
             related_source_ids=[
                 s.source_id for s in decision.sources_considered
             ],
+            related_discord_message_ids=related_discord_message_ids or [],
             dedup_key=dedup_key,
         )
 
@@ -93,6 +96,7 @@ class HandoffHandler:
         original_message: str = "",
         original_message_url: str = "",
         extraction: ExtractionResult | None = None,
+        related_discord_message_ids: list[str] | None = None,
     ) -> Optional[HandoffPayload]:
         """Create and check handoff — returns payload if should send, None if duplicate."""
         if not self.should_handoff(decision):
@@ -103,6 +107,7 @@ class HandoffHandler:
             original_message=original_message,
             original_message_url=original_message_url,
             extraction=extraction,
+            related_discord_message_ids=related_discord_message_ids,
         )
 
         if self.is_duplicate(payload):

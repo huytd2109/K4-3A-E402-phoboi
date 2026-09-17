@@ -19,9 +19,25 @@ class Config:
     def __init__(self) -> None:
         self.app_env: str = os.getenv("APP_ENV", "demo").lower()
 
+        # LLM intent router. The key is never rendered or written to logs.
+        self.llm_provider: str = self._env_value("LLM_PROVIDER", "rule_based").lower()
+        self.llm_api_key: str = os.getenv("GEMINI_API_KEY") or os.getenv("LLM_API_KEY", "")
+        self.llm_model: str = self._env_value("LLM_MODEL", "gemini-2.5-flash")
+        self.llm_timeout_seconds: float = float(
+            os.getenv("LLM_TIMEOUT_SECONDS", "12")
+        )
+
         # Source data
         self.official_sources_path: str = os.getenv(
             "OFFICIAL_SOURCES_PATH", "data/official/sources.json"
+        )
+        self.discord_pack_path: str = os.getenv(
+            "DISCORD_PACK_PATH", "data/discord-pack/k4_messages.csv"
+        )
+        pack_default = "false" if self.is_production else "true"
+        self.discord_pack_enabled: bool = (
+            os.getenv("DISCORD_PACK_ENABLED", pack_default).strip().lower()
+            in {"1", "true", "yes", "on"}
         )
 
         # Discord (optional — only needed for Discord adapter)
@@ -48,6 +64,11 @@ class Config:
         self.handoff_cooldown_seconds: int = int(
             os.getenv("HANDOFF_COOLDOWN_SECONDS", "300")
         )
+
+    @staticmethod
+    def _env_value(name: str, default: str) -> str:
+        """Read a simple env value and tolerate comments copied from examples."""
+        return os.getenv(name, default).split("#", 1)[0].strip() or default
 
     @property
     def is_production(self) -> bool:

@@ -104,3 +104,38 @@ def test_different_class_scopes_needs_clarification():
     )
     res = resolve_conflicts([s1, s2])
     assert res.result == ConflictResult.NEEDS_CLASS_CLARIFICATION
+
+
+def test_different_cohorts_need_clarification():
+    common = {
+        "source_url": "https://discord.com/message",
+        "published_at": datetime.now(timezone.utc),
+        "task_id": "lab-01",
+        "logistics_type": LogisticsType.DEADLINE,
+        "deadline": datetime(2026, 9, 10, tzinfo=timezone.utc),
+        "is_fixture": True,
+    }
+    s1 = OfficialSource(source_id="k4", cohort="K4", **common)
+    s2 = OfficialSource(source_id="k5", cohort="K5", **common)
+    assert resolve_conflicts([s1, s2]).result == ConflictResult.NEEDS_COHORT_CLARIFICATION
+
+
+def test_production_source_must_match_whitelists(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("AUTHORIZED_CHANNEL_IDS", "official-channel")
+    monkeypatch.setenv("AUTHORIZED_ROLE_IDS", "btc-role")
+    config = Config()
+    source = OfficialSource(
+        source_id="prod-1",
+        source_url="https://discord.com/message",
+        published_at=datetime.now(timezone.utc),
+        task_id="lab-01",
+        logistics_type=LogisticsType.DEADLINE,
+        deadline=datetime(2026, 9, 10, tzinfo=timezone.utc),
+        channel_id="untrusted-channel",
+        published_by_role="btc-role",
+        is_fixture=False,
+    )
+    repo = SourceRepository(config=config)
+    with pytest.raises(ValueError, match="unauthorized channel"):
+        repo.load_from_list([source])

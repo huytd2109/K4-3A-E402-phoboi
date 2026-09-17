@@ -11,8 +11,12 @@ from dataclasses import dataclass, field
 
 # ── Patterns ──────────────────────────────────────────────────────
 
-# Bot mention patterns (Discord format: <@!BOT_ID> or <@BOT_ID> or @BOT)
-_BOT_MENTION_RE = re.compile(r"<@!?\d+>|@\S+", re.IGNORECASE)
+# Bot mention patterns (Discord format or known display names). Keep email
+# addresses and arbitrary mentions intact so PII detection can still see them.
+_BOT_MENTION_RE = re.compile(
+    r"<@!?\d+>|@(?:bot|trợ-lý|tro-ly)\b",
+    re.IGNORECASE,
+)
 
 # Role and @everyone/@here mentions
 _DANGEROUS_MENTION_RE = re.compile(r"@(everyone|here|&\d+)", re.IGNORECASE)
@@ -127,6 +131,15 @@ def escape_mentions(text: str) -> str:
     # Break role mentions
     text = re.sub(r"<@&(\d+)>", lambda m: f"<@{ZWS}&{m.group(1)}>", text)
     return text
+
+
+def redact_pii(text: str) -> str:
+    """Replace detected identifiers before text enters logs or handoff payloads."""
+    redacted = text
+    labels = ("[IDENTIFIER]", "[EMAIL]", "[PHONE]")
+    for pattern, label in zip(_PII_PATTERNS, labels):
+        redacted = pattern.sub(label, redacted)
+    return redacted
 
 
 def contains_system_leak_request(text: str) -> bool:
