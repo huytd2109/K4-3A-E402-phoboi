@@ -1,0 +1,10 @@
+{
+  "message_analyzer_v1.md": {
+    "version": "1.0.0",
+    "sha256": "a9f420ca1866cfd18506b73f1da74c492cd0c9991f76efa33a3bfe569d96a4c0"
+  },
+  "ai_judge_v1.md": {
+    "version": "1.0.0",
+    "sha256": "96f62a4d3cb6fbf282aff650710a61d07e59e94b5cac67c057fa0c4ab3f7e303"
+  }
+}

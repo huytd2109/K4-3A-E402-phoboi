@@ -14,6 +14,13 @@ env/
 *.sqlite3
 logs/
 *.log
+runs/
+.pytest_cache/
+.coverage
+htmlcov/
+web/node_modules/
+web/dist/
+web/.npm-cache/
 __pycache__/
 *.py[cod]
 *.so
