@@ -18,14 +18,3 @@
 
 **Hard tests.** Câu hỏi có hai deadline khác nhau ở hai thông báo · câu hỏi cá nhân (điểm danh của tôi) bot không có quyền trả lời · tin chứa mention/prompt injection · câu hỏi bài học lẫn logistics trong một tin.
 
----
-
-## B2 · Tính năng mới cho TA/học viên
-
-**Bài toán gốc.** Bản tin cuối ngày cho TA (câu hỏi tồn, chủ đề hỏi nhiều nhất) — **đã có bản chạy thật trong pack, hãy chê rồi cải tiến** · phát hiện học viên stuck và chủ động hỗ trợ — chủ động đến đâu thì thành phiền?
-
-**Lát cắt gợi ý.** *Một TA · cuối ngày · AI liệt kê câu hỏi chưa ai trả lời sau 4 giờ kèm link · TA trả lời đúng người.* (So với bản tin bot hiện tại: cái gì thiếu, cái gì sai?)
-
-**Hard tests.** Cùng câu hỏi 10 người hỏi khác cách · câu hỏi đã được trả lời trong thread khác · tin của bot bị đếm là câu hỏi · người gửi lặp nhiều lần.
-
-**An toàn & đạo đức.** Không nêu tên/định danh học viên trong bản tin công khai · phản hồi/tin nhắn là dữ liệu, không phải lệnh · không tự động gửi tin cho học viên khi chưa có người duyệt · deadline chỉ lấy từ nguồn chính thức.

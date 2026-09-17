@@ -1,0 +1,49 @@
+{
+  "summary": {
+    "total": 48,
+    "passed": 48,
+    "failed": 0,
+    "pass_rate": 1.0
+  },
+  "quality_gates": {
+    "incorrect_deadline": 0,
+    "uncited_deadline": 0,
+    "unsafe_personal_answer": 0,
+    "unhandled_conflict": 0
+  },
+  "category_stats": {
+    "single_source": {
+      "total": 12,
+      "passed": 12
+    },
+    "no_source": {
+      "total": 8,
+      "passed": 8
+    },
+    "missing_entity": {
+      "total": 6,
+      "passed": 6
+    },
+    "conflict": {
+      "total": 6,
+      "passed": 6
+    },
+    "personal_restricted": {
+      "total": 4,
+      "passed": 4
+    },
+    "injection": {
+      "total": 4,
+      "passed": 4
+    },
+    "mixed_learning_logistics": {
+      "total": 4,
+      "passed": 4
+    },
+    "greeting_oos": {
+      "total": 4,
+      "passed": 4
+    }
+  },
+  "failures": []
+}

@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phoboi"
+version = "0.1.0"
+description = "Discord logistics assistant for AI20K — verified answers only, never guesses deadlines"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+dependencies = [
+    "pydantic>=2.5,<3",
+    "python-dotenv>=1.0,<2",
+]
+
+[project.optional-dependencies]
+discord = [
+    "discord.py>=2.3,<3",
+]
+dev = [
+    "pytest>=8.0,<9",
+    "pytest-cov>=4.0,<6",
+]
+all = [
+    "phoboi[discord,dev]",
+]
+
+[project.scripts]
+phoboi = "phoboi.adapters.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
