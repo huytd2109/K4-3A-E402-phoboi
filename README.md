@@ -96,12 +96,20 @@ clarification, handoff và security flags. Server mặc định chỉ bind local
 
 ## 🧪 Chạy Tests & Eval
 ```bash
-# Unit & Integration tests (49 tests, không gọi API)
+# Unit & Integration tests (55 tests, không gọi API)
 python -m pytest tests/ -v
 
-# Eval golden set (48 cases)
-python eval/eval_runner.py
+# Eval deterministic toàn bộ golden set (48 cases)
+python eval/eval_runner.py --provider rule_based
+
+# Eval CP3 bằng Gemini thật (cần GEMINI_API_KEY trong biến môi trường)
+python eval/eval_runner.py --provider gemini
 ```
+
+Hai lượt đo được lưu riêng để không đánh đồng rule-based với AI thật:
+`eval/results/latest.*` cho deterministic eval và
+`eval/results/live_latest.*` cho Gemini. Lượt Gemini ghi rõ tổng số live call và
+fallback; một case fallback không được tính là đạt.
 
 ## 🎯 Quality Gates
 | Gate | Target |

@@ -1,12 +1,17 @@
-"""Eval runner — runs golden set through the pipeline and reports results.
+"""Eval runner — runs the golden set through rule-based or live Gemini routing.
 
-Usage: python eval/eval_runner.py
+Usage:
+    python eval/eval_runner.py
+    python eval/eval_runner.py --provider gemini
 Run from the repo root directory.
 """
 
+import argparse
 import json
 import os
 import sys
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Fix Windows console encoding
@@ -16,29 +21,61 @@ if sys.stdout.encoding != "utf-8":
 # Ensure we can import phoboi
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-os.environ["APP_ENV"] = "test"
-os.environ["LLM_PROVIDER"] = "rule_based"
-
 from phoboi.pipeline import Pipeline
 from phoboi.config import Config
 from phoboi.models import PolicyOutcome
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Evaluate the Phoboi golden set")
+    parser.add_argument(
+        "--provider",
+        choices=("rule_based", "gemini"),
+        default="rule_based",
+        help="Router used for this run. Gemini requires GEMINI_API_KEY.",
+    )
+    parser.add_argument(
+        "--delay-seconds",
+        type=float,
+        default=None,
+        help=(
+            "Delay between cases. Defaults to 7 seconds for Gemini and 0 for "
+            "rule-based runs to avoid provider rate limits."
+        ),
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
+    args = parse_args()
+    requested_provider = args.provider
+    delay_seconds = (
+        args.delay_seconds
+        if args.delay_seconds is not None
+        else (7.0 if requested_provider == "gemini" else 0.0)
+    )
+    if delay_seconds < 0:
+        print("Error: --delay-seconds must be non-negative.")
+        sys.exit(2)
     base_dir = Path(__file__).resolve().parent.parent
     golden_set_path = base_dir / "eval" / "golden_set.jsonl"
     results_dir = base_dir / "eval" / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
-    json_report_path = results_dir / "latest.json"
-    md_report_path = results_dir / "latest.md"
+    report_name = "live_latest" if requested_provider == "gemini" else "latest"
+    json_report_path = results_dir / f"{report_name}.json"
+    md_report_path = results_dir / f"{report_name}.md"
 
     # Set up configuration
     os.environ["APP_ENV"] = "test"
-    os.environ["LLM_PROVIDER"] = "rule_based"
+    os.environ["LLM_PROVIDER"] = requested_provider
     os.environ["OFFICIAL_SOURCES_PATH"] = str(
         base_dir / "data" / "official" / "sources.json"
     )
     config = Config()
+
+    if requested_provider == "gemini" and not config.llm_api_key:
+        print("Error: GEMINI_API_KEY is required for --provider gemini.")
+        sys.exit(2)
 
     source_path = Path(config.official_sources_path)
     if not source_path.exists():
@@ -61,6 +98,8 @@ def main() -> None:
     failed = 0
     hard_total = 0
     hard_passed = 0
+    live_ai_calls = 0
+    fallback_calls = 0
 
     # Quality gate counters
     incorrect_deadline = 0
@@ -68,7 +107,9 @@ def main() -> None:
     unsafe_personal_answer = 0
     unhandled_conflict = 0
 
-    for tc in test_cases:
+    for index, tc in enumerate(test_cases):
+        if index > 0 and delay_seconds > 0:
+            time.sleep(delay_seconds)
         category = tc["category"]
         if category not in category_stats:
             category_stats[category] = {"total": 0, "passed": 0}
@@ -91,6 +132,20 @@ def main() -> None:
 
             is_pass = True
             reasons: list[str] = []
+
+            router_provider = response.audit.router_provider if response.audit else "unknown"
+            router_used_fallback = (
+                response.audit.router_used_fallback if response.audit else True
+            )
+            if requested_provider == "gemini":
+                if router_provider == "gemini" and not router_used_fallback:
+                    live_ai_calls += 1
+                else:
+                    fallback_calls += 1
+                    is_pass = False
+                    reasons.append(
+                        "Live Gemini was required but the router used fallback"
+                    )
 
             # Check outcome
             if actual_outcome != tc["expected_outcome"]:
@@ -154,7 +209,14 @@ def main() -> None:
                 category_stats[category]["passed"] += 1
                 if tc.get("hard_test"):
                     hard_passed += 1
-                results.append({"id": tc["id"], "status": "PASS"})
+                results.append(
+                    {
+                        "id": tc["id"],
+                        "status": "PASS",
+                        "router_provider": router_provider,
+                        "used_fallback": router_used_fallback,
+                    }
+                )
             else:
                 failed += 1
                 results.append(
@@ -165,10 +227,14 @@ def main() -> None:
                         "expected": tc["expected_outcome"],
                         "actual": actual_outcome,
                         "reason": "; ".join(reasons),
+                        "router_provider": router_provider,
+                        "used_fallback": router_used_fallback,
                     }
                 )
 
         except Exception as e:
+            if requested_provider == "gemini":
+                fallback_calls += 1
             failed += 1
             results.append(
                 {
@@ -178,6 +244,8 @@ def main() -> None:
                     "expected": tc.get("expected_outcome", "?"),
                     "actual": "EXCEPTION",
                     "reason": str(e),
+                    "router_provider": "error",
+                    "used_fallback": True,
                 }
             )
 
@@ -186,6 +254,14 @@ def main() -> None:
 
     # ── JSON report ──
     report = {
+        "run": {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "requested_provider": requested_provider,
+            "model": config.llm_model if requested_provider == "gemini" else None,
+            "live_ai_calls": live_ai_calls,
+            "fallback_calls": fallback_calls,
+            "delay_seconds": delay_seconds,
+        },
         "summary": {
             "total": total,
             "passed": passed,
@@ -209,6 +285,14 @@ def main() -> None:
     # ── Markdown report ──
     with open(md_report_path, "w", encoding="utf-8") as f:
         f.write("# Eval Results\n\n")
+        f.write(f"**Provider:** {requested_provider}\n\n")
+        if requested_provider == "gemini":
+            f.write(f"**Model:** {config.llm_model}\n\n")
+            f.write(
+                f"**Live AI calls:** {live_ai_calls}/{total} | "
+                f"**Fallbacks:** {fallback_calls}\n\n"
+            )
+            f.write(f"**Delay between calls:** {delay_seconds:.1f}s\n\n")
         f.write(
             f"**Total:** {total} | **Passed:** {passed} | "
             f"**Failed:** {failed} | **Pass Rate:** {pass_rate*100:.1f}%\n\n"
@@ -255,7 +339,12 @@ def main() -> None:
                         f"{r.get('reason','')} |\n"
                     )
 
-    print(f"\nEval completed: {passed}/{total} ({pass_rate*100:.1f}%)")
+    print(
+        f"\nEval completed with {requested_provider}: "
+        f"{passed}/{total} ({pass_rate*100:.1f}%)"
+    )
+    if requested_provider == "gemini":
+        print(f"Live AI calls: {live_ai_calls}/{total}; fallbacks: {fallback_calls}")
     print(f"Reports: {results_dir}")
 
     # Quality gate checks

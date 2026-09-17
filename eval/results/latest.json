@@ -1,4 +1,12 @@
 {
+  "run": {
+    "generated_at": "2026-09-17T08:46:08.841724+00:00",
+    "requested_provider": "rule_based",
+    "model": null,
+    "live_ai_calls": 0,
+    "fallback_calls": 0,
+    "delay_seconds": 0.0
+  },
   "summary": {
     "total": 48,
     "passed": 48,

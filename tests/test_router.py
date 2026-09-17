@@ -1,7 +1,8 @@
 import pytest
 
 from phoboi.intent import create_router
-from phoboi.models import Intent, LogisticsType
+from phoboi.intent.gemini import GeminiIntentRouter, HybridIntentRouter
+from phoboi.models import ExtractionResult, Intent, LogisticsType, RouterResult
 
 
 @pytest.fixture
@@ -89,3 +90,62 @@ def test_gemini_router_falls_back_transparently_without_key():
     assert res.used_fallback is True
     assert res.fallback_reason == "missing_api_key"
     assert res.model == "gemini-test-model"
+
+
+def test_gemini_router_normalizes_provider_label_variants():
+    intents = GeminiIntentRouter._normalize_intents(
+        ["deadline", " learning ", "LOGISTICS-DEADLINE", "not-a-real-intent"]
+    )
+
+    assert intents == [Intent.LOGISTICS_DEADLINE, Intent.LEARNING]
+    assert (
+        GeminiIntentRouter._normalize_logistics_type("LOGISTICS_DEADLINE")
+        == LogisticsType.DEADLINE
+    )
+
+
+def test_gemini_router_uses_unknown_when_provider_returns_no_valid_intent():
+    assert GeminiIntentRouter._normalize_intents([]) == [Intent.UNKNOWN]
+    assert GeminiIntentRouter._normalize_intents(["not-a-real-intent"]) == [
+        Intent.UNKNOWN
+    ]
+
+
+def test_hybrid_router_uses_deterministic_entity_canonicalization():
+    class StaticRouter:
+        def __init__(self, result):
+            self.result = result
+
+        def classify(self, _text):
+            return self.result
+
+    primary = StaticRouter(
+        RouterResult(
+            intents=[Intent.LOGISTICS_DEADLINE],
+            extraction=ExtractionResult(
+                task="lập đội",
+                task_normalized="lap-doi",
+                logistics_type=LogisticsType.DEADLINE,
+            ),
+            provider="gemini",
+            model="gemini-test",
+        )
+    )
+    deterministic = StaticRouter(
+        RouterResult(
+            intents=[Intent.LOGISTICS_DEADLINE],
+            extraction=ExtractionResult(
+                task="lập đội",
+                task_normalized="team-formation",
+                logistics_type=LogisticsType.DEADLINE,
+            ),
+        )
+    )
+
+    result = HybridIntentRouter(primary=primary, fallback=deterministic).classify(
+        "deadline lập đội"
+    )
+
+    assert result.provider == "gemini"
+    assert result.used_fallback is False
+    assert result.extraction.task_normalized == "team-formation"
