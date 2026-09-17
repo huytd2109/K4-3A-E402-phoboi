@@ -48,7 +48,7 @@ luôn được lấy từ nguồn chính thức bởi Policy Engine.
    ```env
    LLM_PROVIDER=gemini
    GEMINI_API_KEY=your-api-key-here
-   LLM_MODEL=gemini-3.6-flash
+   LLM_MODEL=gemini-2.5-flash
    LLM_TIMEOUT_SECONDS=12
    ```
 3. **KHÔNG BAO GIỜ** commit file `.env` lên git
@@ -144,7 +144,21 @@ K4-3A-E402-phoboi/
 ```
 
 ## 👥 Đội ngũ
-- **Team K4-3A-E402** - Nhà phát triển Phoboi
+
+| Thành viên | Vai trò | Phần việc chính |
+|---|---|---|
+| Nguyễn Hoàng Sơn | Product Lead & AI Engineer | Spec, evidence mining, Gemini router, eval |
+| Trịnh Đức Huy | Backend Engineer | Source repository, conflict resolver, Discord adapter |
+| Trịnh Hoàng Tùng | QA & Security | Test suite, security, golden set và hard tests |
+| Đỗ Quốc An | UX & Documentation | Web demo, README, flow và kịch bản demo |
+
+## 📌 CP4 — Spec đã khóa
+
+- Quality bar: ≥95%, bốn zero-gate và 4/4 hard tests; không hạ bar sau CP4.
+- Evidence mining và cách tái lập: `evidence/discord-mining.md`.
+- Survey 22 phản hồi và cách tái lập: `evidence/survey-summary.md`.
+- Kết quả Gemini thật gần nhất: `eval/results/live_latest.md`.
+- Phần chưa hoàn thành được khai công khai trong `spec.md` §8.
 
 ## 📄 License
 MIT
