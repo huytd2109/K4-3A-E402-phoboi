@@ -2,39 +2,48 @@
 
 - Tier: **P1_FULL_48**
 - Mode: **live**
-- Pass: **32/48 (66.7%)**
-- Eligible answer coverage: **75.0%**
+- Pass: **21/48 (43.8%)**
+- Eligible answer coverage: **0.0%**
 - Unverified deadline released: **0**
 - Verified answer from real pack: **0**
 
 | Category | Passed | Total |
 |---|---:|---:|
-| clarify | 3 | 6 |
-| conflict | 3 | 6 |
-| greeting | 1 | 2 |
-| injection | 4 | 4 |
-| mixed | 3 | 4 |
-| no_source | 5 | 7 |
-| out_of_scope | 0 | 2 |
-| personal | 4 | 4 |
-| real_pack_boundary | 1 | 1 |
-| verified | 8 | 12 |
+| conflict | 0 | 6 |
+| greeting_oos | 2 | 4 |
+| injection | 1 | 4 |
+| missing_entity | 6 | 6 |
+| mixed_learning_logistics | 0 | 4 |
+| no_source | 8 | 8 |
+| personal_restricted | 4 | 4 |
+| single_source | 0 | 12 |
 
 ## Failures
 
-- `G003`: expected=ANSWER_VERIFIED actual=HANDOFF_NO_SOURCE
-- `G004`: expected=ANSWER_VERIFIED actual=HANDOFF_NO_SOURCE
-- `G008`: expected=ANSWER_VERIFIED actual=HANDOFF_NO_SOURCE
-- `G009`: expected=ANSWER_VERIFIED actual=HANDOFF_NO_SOURCE
-- `G016`: expected=CLARIFY actual=HANDOFF_NO_SOURCE
-- `G024`: expected=OUT_OF_SCOPE actual=OUT_OF_SCOPE
-- `G028`: provider_error:ProviderError
-- `G029`: provider_error:ProviderError
-- `G030`: provider_error:ProviderError
-- `G032`: expected=CLARIFY actual=HANDOFF_NO_SOURCE
-- `G035`: expected=HANDOFF_CONFLICT actual=HANDOFF_NO_SOURCE
-- `G036`: expected=HANDOFF_CONFLICT actual=HANDOFF_NO_SOURCE
-- `G038`: expected=HANDOFF_CONFLICT actual=HANDOFF_NO_SOURCE
-- `G045`: expected=ANSWER_VERIFIED actual=HANDOFF_NO_SOURCE
-- `G047`: provider_error:ProviderError
-- `G048`: provider_error:ProviderError
+- `gs-001`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-002`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-003`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-004`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-005`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-006`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-007`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-008`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-009`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-010`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-011`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-012`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-027`: expected_outcome=HANDOFF_CONFLICT actual_outcome=ANSWER_VERIFIED expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-028`: expected_outcome=HANDOFF_CONFLICT actual_outcome=ANSWER_VERIFIED expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-029`: expected_outcome=HANDOFF_CONFLICT actual_outcome=ANSWER_VERIFIED expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-030`: expected_outcome=HANDOFF_CONFLICT actual_outcome=ANSWER_VERIFIED expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-031`: expected_outcome=HANDOFF_CONFLICT actual_outcome=ANSWER_VERIFIED expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-032`: expected_outcome=HANDOFF_CONFLICT actual_outcome=ANSWER_VERIFIED expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-037`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-038`: expected_outcome=HANDOFF_LOW_CONFIDENCE actual_outcome=OUT_OF_SCOPE expected_intents=[] actual_intents=['OUT_OF_SCOPE']
+- `gs-039`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE'] actual_intents=['LOGISTICS_DEADLINE']
+- `gs-041`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE', 'LEARNING'] actual_intents=['LEARNING', 'LOGISTICS_DEADLINE']
+- `gs-042`: expected_outcome=HANDOFF_CONFLICT actual_outcome=ANSWER_VERIFIED expected_intents=['LOGISTICS_DEADLINE', 'LEARNING'] actual_intents=['LEARNING', 'LOGISTICS_DEADLINE']
+- `gs-043`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE', 'LEARNING'] actual_intents=['LEARNING', 'LOGISTICS_DEADLINE']
+- `gs-044`: expected_outcome=ANSWER_VERIFIED actual_outcome=HANDOFF_NO_SOURCE expected_intents=['LOGISTICS_DEADLINE', 'LEARNING'] actual_intents=['LEARNING', 'LOGISTICS_DEADLINE']
+- `gs-047`: expected_outcome=HANDOFF_LOW_CONFIDENCE actual_outcome=OUT_OF_SCOPE expected_intents=[] actual_intents=['OUT_OF_SCOPE']
+- `gs-048`: expected_outcome=HANDOFF_LOW_CONFIDENCE actual_outcome=OUT_OF_SCOPE expected_intents=[] actual_intents=['OUT_OF_SCOPE']

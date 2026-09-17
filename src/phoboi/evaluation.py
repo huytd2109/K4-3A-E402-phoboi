@@ -16,7 +16,15 @@ from phoboi.sources import source_store_for_mode
 def run_golden(settings: Settings, *, require_live: bool, suite_path: Path = Path("eval/golden_set.jsonl"), output_dir: Path = Path("eval/results")) -> dict:
     if not require_live and settings.app_env != "test":
         raise RuntimeError("offline evaluation is only permitted when APP_ENV=test")
-    cases = [json.loads(line) for line in suite_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    raw_cases = [json.loads(line) for line in suite_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    cases = [
+        {
+            **case,
+            "message": case.get("message", case.get("input", "")),
+            "source_mode": case.get("source_mode", settings.source_mode),
+        }
+        for case in raw_cases
+    ]
     analyzer = MessageAnalyzer(create_provider(settings), model=settings.llm_model) if require_live else None
     analyses = {}
     analysis_errors = {}

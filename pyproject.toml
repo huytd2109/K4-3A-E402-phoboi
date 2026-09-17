@@ -22,6 +22,7 @@ discord = ["discord.py>=2.4"]
 
 [project.scripts]
 phoboi = "phoboi.cli:main"
+phoboi-api = "phoboi.api:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

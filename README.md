@@ -89,13 +89,20 @@ Run test đã xác nhận đủ 1.092 row nhưng nằm trong `runs/` và không 
 ## UI demo
 
 ```powershell
+# Terminal 1: API proxy đọc provider/key từ .env và gọi LLM thật
+$env:APP_ENV = "production"
+$env:SOURCE_MODE = "dataset"
+$env:PYTHONPATH = "src"
+python -m phoboi.api
+
+# Terminal 2: React UI
 cd web
 npm install
 npm run dev
 # hoặc npm run build
 ```
 
-UI kế thừa flow từ `phoboi-cp2.zip`: answer, clarify, resolvable/unresolved conflict, no-source, personal-data, injection và mixed intent. Banner cố định đánh dấu toàn bộ persona/source/deadline là synthetic demo.
+Mở `http://localhost:8443/`, nhập câu hỏi trực tiếp vào ô chat ở cuối kênh `#hỏi-trợ-lý` để UI gọi `POST http://127.0.0.1:8787/api/chat`. API proxy giữ API key ở backend, dùng provider/model trong `.env`, rồi chạy cùng `MessageAnalyzer` và policy deterministic của CLI. Các flow bên dưới vẫn là scenario demo tĩnh; banner cố định đánh dấu persona/source/deadline demo.
 
 ## Discord mode
 

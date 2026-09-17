@@ -1,0 +1,10 @@
+{
+  "description": "Transform markdown text into beautifully formatted documents, making it easy for writers and developers to create and share content efficiently.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
