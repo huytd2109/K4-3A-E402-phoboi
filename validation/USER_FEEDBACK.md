@@ -6,6 +6,7 @@
 |---|---|---|
 | Nguyễn Văn Việt | `2A202602904` | Khá hài lòng |
 | Hà Huy Nhất | `2A202602401` | Khá hài lòng |
+| Dương Đạt Khang | `2A202602624` | Khá hài lòng |
 
 ## Tổng hợp
 
