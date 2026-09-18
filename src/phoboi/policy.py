@@ -62,7 +62,7 @@ def decide(analysis: Analysis, content: str, store: SourceStore, registry: Hando
         return Decision(msg_id=analysis.msg_id, intents=analysis.intents, outcome=Outcome.OUT_OF_SCOPE, response="Câu hỏi này nằm ngoài phạm vi logistics mà mình hỗ trợ.", prompt_injection_detected=injection)
 
     if analysis.confidence < 0.55:
-        return _handoff_decision(analysis, content, registry, Outcome.HANDOFF_LOW_CONFIDENCE, "Mình chưa đủ chắc về ý định của câu hỏi nên đã chuyển TA, không tự suy đoán.", [])
+        return _handoff_decision(analysis, content, registry, Outcome.HANDOFF_LOW_CONFIDENCE, "Mình chưa đủ chắc về ý định của câu hỏi nên cần TA kiểm tra, không tự suy đoán.", [])
     if not analysis.entities.task:
         return Decision(
             msg_id=analysis.msg_id,
@@ -79,13 +79,13 @@ def decide(analysis: Analysis, content: str, store: SourceStore, registry: Hando
         question = "Bạn thuộc cohort nào?" if resolution.missing_field == "cohort" else "Bạn thuộc lớp nào?"
         return Decision(msg_id=analysis.msg_id, intents=analysis.intents, outcome=Outcome.CLARIFY, response=question, prompt_injection_detected=injection)
     if resolution.kind == "no_source":
-        return _handoff_decision(analysis, content, registry, Outcome.HANDOFF_NO_SOURCE, "Mình chưa tìm được thông tin trong nguồn chính thức nên sẽ không đoán. Mình đã chuyển câu hỏi cho TA.", [])
+        return _handoff_decision(analysis, content, registry, Outcome.HANDOFF_NO_SOURCE, "Mình chưa tìm được thông tin trong nguồn chính thức nên sẽ không đoán. Bạn cần nhờ TA xác nhận thông tin này.", [])
     if resolution.kind == "conflict":
-        return _handoff_decision(analysis, content, registry, Outcome.HANDOFF_CONFLICT, "Mình tìm thấy các nguồn chính thức có thông tin khác nhau và không có quan hệ thay thế rõ ràng. Mình đã chuyển TA kiểm tra.", resolution.sources)
+        return _handoff_decision(analysis, content, registry, Outcome.HANDOFF_CONFLICT, "Mình tìm thấy các nguồn chính thức có thông tin khác nhau và không có quan hệ thay thế rõ ràng. Cần TA kiểm tra thông tin này.", resolution.sources)
 
     selected = resolution.sources[0]
     if store.mode != "synthetic_demo" or not selected.is_fixture or selected.source_type != "synthetic_demo":
-        return _handoff_decision(analysis, content, registry, Outcome.HANDOFF_NO_SOURCE, "Nguồn tìm thấy chỉ là UNVERIFIED CANDIDATE nên mình không trả deadline. Mình đã chuyển TA.", [])
+        return _handoff_decision(analysis, content, registry, Outcome.HANDOFF_NO_SOURCE, "Nguồn tìm thấy chỉ là UNVERIFIED CANDIDATE nên mình không trả deadline. Cần TA xác nhận thông tin này.", [])
     response, urls = _format_verified(selected)
     return Decision(
         msg_id=analysis.msg_id,
@@ -98,4 +98,3 @@ def decide(analysis: Analysis, content: str, store: SourceStore, registry: Hando
         badge="DỮ LIỆU DEMO",
         learning_route="Chuyển phần học tập sang kênh hỗ trợ bài học." if Intent.LEARNING in analysis.intents else None,
     )
-

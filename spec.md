@@ -66,7 +66,7 @@ Chọn deadline verified-source-first vì error cost cao và có thể kiểm ch
 
 ## §8. Phân công & kế hoạch
 
-Đề xuất chưa được nhóm xác nhận nằm trong `TEAMMATES.md`. Validation với willing users chưa được nhóm cung cấp nên không tuyên bố hoàn thành.
+Đề xuất đã được nhóm xác nhận nằm trong `TEAMMATES.md`. Phản hồi của hai người test thật được ghi tại `validation/USER_FEEDBACK.md`; đây là bằng chứng usability định tính và không thay thế kiểm thử tự động hoặc xác minh nguồn.
 
 ## §9. Changelog
 

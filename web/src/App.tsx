@@ -108,7 +108,7 @@ function Chip({ label, color }: { label: string; color: string }) {
   );
 }
 
-type BadgeKind = "official" | "admin" | "kb" | "conflict" | "needs-admin" | "verified" | "out-of-scope" | "blocked";
+type BadgeKind = "official" | "admin" | "kb" | "conflict" | "needs-admin" | "verified" | "out-of-scope" | "blocked" | "clarify" | "no-source";
 
 function Badge({ kind }: { kind: BadgeKind }) {
   const map: Record<BadgeKind, { label: string; color: string }> = {
@@ -120,6 +120,8 @@ function Badge({ kind }: { kind: BadgeKind }) {
     verified: { label: "✓ DỮ LIỆU DEMO · ADMIN ĐÃ XÁC NHẬN", color: "#23a559" },
     "out-of-scope": { label: "OUT OF SCOPE", color: "#949ba4" },
     blocked: { label: "TIN NHẮN → DỮ LIỆU, KHÔNG PHẢI LỆNH", color: "#f0b232" },
+    clarify: { label: "CẦN BỔ SUNG THÔNG TIN", color: "#5865f2" },
+    "no-source": { label: "CHƯA CÓ NGUỒN XÁC MINH", color: "#f0b232" },
   };
   const s = map[kind];
   return (
@@ -1124,20 +1126,24 @@ type LiveRequest = {
 };
 
 function LiveDecisionContent({ decision }: { decision: LiveDecision }) {
-  const badgeKind: BadgeKind = decision.outcome === "ANSWER_VERIFIED"
+  const badgeKind: BadgeKind | null = decision.outcome === "ANSWER_VERIFIED"
     ? "official"
     : decision.outcome === "HANDOFF_CONFLICT"
       ? "conflict"
       : decision.outcome === "RESTRICT_PERSONAL" || decision.outcome === "OUT_OF_SCOPE"
         ? "out-of-scope"
         : decision.outcome === "CLARIFY"
-          ? "needs-admin"
-          : "blocked";
+          ? "clarify"
+          : decision.outcome === "HANDOFF_NO_SOURCE"
+            ? "no-source"
+            : decision.outcome === "HANDOFF_LOW_CONFIDENCE"
+              ? "needs-admin"
+              : null;
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-1.5">
-        <Badge kind={badgeKind} />
+        {badgeKind && <Badge kind={badgeKind} />}
         {decision.prompt_injection_detected && <Badge kind="blocked" />}
       </div>
       <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#dcddde]">{decision.response}</p>
@@ -1164,7 +1170,7 @@ function LiveDecisionContent({ decision }: { decision: LiveDecision }) {
       )}
       {decision.handoff && (
         <div className={`rounded-md border p-3 ${decision.outcome === "HANDOFF_CONFLICT" ? "border-[#ed4245]/50 bg-[#490e0f]/30" : "border-[#f0b232]/50 bg-[#4a3410]/30"}`}>
-          <div className="mb-1 text-xs font-semibold text-[#f0b232]">TA tiếp quản với đủ ngữ cảnh</div>
+          <div className="mb-1 text-xs font-semibold text-[#f0b232]">Cần TA kiểm tra — chưa gửi tự động</div>
           <p className="text-xs text-[#dcddde]">Lý do: {decision.handoff.reason_code}. Không tự chọn hoặc bịa thông tin.</p>
           {!!decision.handoff.related_source_ids.length && (
             <p className="mt-1 text-[10px] font-mono text-[#949ba4]">Nguồn liên quan: {decision.handoff.related_source_ids.join(", ")}</p>

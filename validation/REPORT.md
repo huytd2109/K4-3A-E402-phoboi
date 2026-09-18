@@ -5,6 +5,7 @@
 - Kết quả: **PASS** trong phạm vi offline/local.
 - Pytest: 43 tests; 0 failures; 0 errors; 0 skipped.
 - Số request đến model trong lần chạy này: **0**. Backend và UI không được khởi động.
+- Phản hồi người test thật: [USER_FEEDBACK.md](USER_FEEDBACK.md).
 
 | Kiểm tra | Kết quả | Bằng chứng |
 |---|---|---|
