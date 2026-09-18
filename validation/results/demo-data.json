@@ -1,0 +1,136 @@
+[
+  {
+    "case": "23 unique schema-valid demo sources",
+    "pass": true
+  },
+  {
+    "case": "all sources explicitly marked as fixtures",
+    "pass": true
+  },
+  {
+    "case": "LAB_01/deadline",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_01/link",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_01/submission",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_02/deadline",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_02/link",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_02/submission",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_03/deadline",
+    "expected": "HANDOFF_CONFLICT",
+    "actual": "HANDOFF_CONFLICT",
+    "pass": true
+  },
+  {
+    "case": "LAB_03/link",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_03/submission",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_04/deadline",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_04/link",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_04/submission",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_05/deadline",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_05/link",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_05/submission",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_06/deadline",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_06/link",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "LAB_06/submission",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "DAILY_STANDUP/deadline",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "DAILY_STANDUP/link",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  },
+  {
+    "case": "DAILY_STANDUP/submission",
+    "expected": "ANSWER_VERIFIED",
+    "actual": "ANSWER_VERIFIED",
+    "pass": true
+  }
+]

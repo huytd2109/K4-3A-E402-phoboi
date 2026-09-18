@@ -1,0 +1,2 @@
+# Keep validation evidence despite the repository-wide *.log rule.
+!results/*.log

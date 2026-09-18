@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-09-18T04:00:20.074016+00:00",
+  "git_head": "4f4130d03e14222d2ec7411bdf7549beba1ee2cc",
+  "mode": "offline_local",
+  "live_provider_requests": 0,
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "pytest",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "results/pytest.log",
+      "counts": {
+        "tests": 43,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "name": "demo-data",
+      "status": "PASS",
+      "passed": 23,
+      "total": 23,
+      "log": "results/demo-data.json"
+    },
+    {
+      "name": "typecheck",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "results/typecheck.log"
+    },
+    {
+      "name": "build",
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "results/build.log"
+    }
+  ]
+}

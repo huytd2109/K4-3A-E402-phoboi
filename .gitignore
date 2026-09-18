@@ -28,3 +28,29 @@ __pycache__/
 dist/
 build/
 .eggs/
+
+# Other local environment files; keep the secret-free setup template.
+.env.*
+!.env.example
+
+# Dependencies and generated caches in any subproject.
+node_modules/
+.npm-cache/
+.vite/
+.cache/
+*.tsbuildinfo
+.mypy_cache/
+.ruff_cache/
+.coverage.*
+
+# Operating system files.
+.DS_Store
+Thumbs.db
+
+# Local notes and copies of upstream reference material.
+/[Bb][Ll][Oo][Cc][Kk][Ee][Rr].md
+/[Bb][Ll][Oo][Cc][Kk][Ee][Rr][Ss].md
+/tracks/
+
+# Export archive; the editable prototype is already in figma/.
+/phoboi-cp2.zip
