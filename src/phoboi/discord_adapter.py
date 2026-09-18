@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import traceback
 from dataclasses import dataclass
 
 from phoboi.models import Decision
@@ -62,17 +63,48 @@ def create_discord_client(config: DiscordConfig, on_message_callback):
     client = discord.Client(intents=intents)
 
     @client.event
+    async def on_ready():
+        print(f"[phoboi-discord] Logged in as {client.user}")
+        print(f"[phoboi-discord] Configured guild: {config.guild_id}")
+        print(
+            "[phoboi-discord] Connected guilds: "
+            + ", ".join(f"{guild.name} ({guild.id})" for guild in client.guilds)
+        )
+
+    @client.event
     async def on_message(message):
-        if message.author.bot or message.guild is None or message.guild.id != config.guild_id:
+        if message.author.bot:
             return
-        if client.user not in message.mentions:
+        if message.guild is None:
+            print("[phoboi-discord] Ignored direct message")
             return
-        decision = await on_message_callback(str(message.id), message.content)
-        await message.reply(public_reply(decision), mention_author=False, allowed_mentions=discord.AllowedMentions.none())
-        handoff = handoff_message(decision, config)
-        if handoff:
-            channel = client.get_channel(config.handoff_channel_id)
-            if channel is not None:
-                await channel.send(handoff, allowed_mentions=discord.AllowedMentions(roles=True, users=False, everyone=False))
+        if message.guild.id != config.guild_id:
+            print(f"[phoboi-discord] Ignored message from guild {message.guild.id}")
+            return
+        bot_id = client.user.id if client.user is not None else 0
+        mentioned_ids = [user.id for user in message.mentions]
+        raw_mention = f"<@{bot_id}>" in message.content or f"<@!{bot_id}>" in message.content
+        if client.user not in message.mentions and not raw_mention:
+            print(
+                f"[phoboi-discord] Ignored message without bot mention in #{message.channel}; "
+                f"bot_id={bot_id}, mentioned_ids={mentioned_ids}, content={message.content!r}"
+            )
+            return
+        print(f"[phoboi-discord] Received mention in #{message.channel}")
+        try:
+            decision = await on_message_callback(str(message.id), message.content)
+            await message.reply(public_reply(decision), mention_author=False, allowed_mentions=discord.AllowedMentions.none())
+            handoff = handoff_message(decision, config)
+            if handoff:
+                channel = client.get_channel(config.handoff_channel_id)
+                if channel is not None:
+                    await channel.send(handoff, allowed_mentions=discord.AllowedMentions(roles=True, users=False, everyone=False))
+        except Exception:
+            traceback.print_exc()
+            await message.reply(
+                "Mình chưa xử lý được câu hỏi lúc này. Vui lòng thử lại hoặc báo trợ giảng.",
+                mention_author=False,
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
     return client
 
