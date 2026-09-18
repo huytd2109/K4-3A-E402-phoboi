@@ -1176,6 +1176,7 @@ function LiveDecisionContent({ decision }: { decision: LiveDecision }) {
 }
 
 function LiveChat({ request }: { request?: LiveRequest }) {
+  const [sessionId] = useState(() => crypto.randomUUID());
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<LiveMessage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1191,9 +1192,13 @@ function LiveChat({ request }: { request?: LiveRequest }) {
       const response = await fetch("http://127.0.0.1:8787/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: question }),
+        body: JSON.stringify({ message: question, session_id: sessionId }),
       });
       const payload = await response.json();
+      if (!response.ok && payload.code === "MODEL_RATE_LIMITED") {
+        setMessages((current) => [...current, { id: `${id}-error`, variant: "bot", text: payload.error }]);
+        return;
+      }
       if (!response.ok) throw new Error(payload.error || "API request failed");
       setMessages((current) => [
         ...current,

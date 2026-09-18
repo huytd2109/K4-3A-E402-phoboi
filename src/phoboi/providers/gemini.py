@@ -140,4 +140,4 @@ class GeminiProvider:
                 if not self._retryable(exc) or attempt >= self.max_retries:
                     break
                 time.sleep(min(8.0, (2**attempt) + random.random()))
-        raise ProviderError(f"Gemini request failed: {sanitize_exception(last_error or RuntimeError('unknown error'))}")
+        raise ProviderError(f"Gemini request failed: {sanitize_exception(last_error or RuntimeError('unknown error'))}") from last_error

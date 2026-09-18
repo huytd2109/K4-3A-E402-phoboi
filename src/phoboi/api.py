@@ -7,8 +7,10 @@ from typing import Any
 
 from phoboi.analyzer import MessageAnalyzer
 from phoboi.config import Settings
+from phoboi.conversation import conversations
 from phoboi.policy import decide
 from phoboi.providers.factory import create_provider
+from phoboi.providers.errors import RATE_LIMIT_MESSAGE, is_rate_limit_error
 from phoboi.security import sanitize_exception
 from phoboi.sources import source_store_for_mode
 
@@ -45,13 +47,24 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._send_json(400, {"error": "message is too long"})
                 return
 
+            session_id = payload.get("session_id")
+            if session_id is not None:
+                try:
+                    session_id = str(uuid.UUID(session_id))
+                except (ValueError, TypeError, AttributeError):
+                    self._send_json(400, {"error": "session_id must be a UUID"})
+                    return
             settings = Settings.from_env()
             store = source_store_for_mode(settings.source_mode, app_env=settings.app_env)
-            analysis_response = MessageAnalyzer(
-                create_provider(settings), model=settings.llm_model
-            ).analyze_batch([(f"UI-{uuid.uuid4().hex[:12]}", message, None)])
-            analysis = analysis_response.data.results[0]
-            decision = decide(analysis, message, store)
+            conversation = conversations.get(session_id)
+            with conversation.lock:
+                resolved = conversation.resolve_reply(message)
+                analysis_response = MessageAnalyzer(
+                    create_provider(settings), model=settings.llm_model
+                ).analyze_batch([(f"UI-{uuid.uuid4().hex[:12]}", resolved, conversation.context())])
+                analysis = analysis_response.data.results[0]
+                decision = decide(analysis, message, store)
+                conversation.remember(resolved, analysis, decision)
             self._send_json(
                 200,
                 {
@@ -63,6 +76,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                 },
             )
         except Exception as exc:  # Keep provider details and secrets out of responses.
+            if is_rate_limit_error(exc):
+                self._send_json(429, {"error": RATE_LIMIT_MESSAGE, "code": "MODEL_RATE_LIMITED"})
+                return
             self._send_json(502, {"error": sanitize_exception(exc)})
 
     def log_message(self, format: str, *args: Any) -> None:

@@ -75,7 +75,7 @@ class MessageAnalyzer:
 
     def analyze_batch(self, items: list[tuple[str, str, str | None]]) -> StructuredModelResponse:
         payload = [
-            {"msg_id": msg_id, "content": redact_for_model(content), "parent_context": redact_for_model(parent)[:500] if parent else None}
+            {"msg_id": msg_id, "content": redact_for_model(content), "parent_context": redact_for_model(parent)[:2000] if parent else None}
             for msg_id, content, parent in items
         ]
         response = self.provider.complete_structured(
